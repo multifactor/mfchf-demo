@@ -1,3 +1,6 @@
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
+
 const validateEmail = (email) => {
   return email.match(
     /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -20,15 +23,32 @@ export async function onRequest(context) {
     } else if (typeof password !== 'string' || password.length === 0) {
       return new Response("Expected password", {status: 400});
     } else {
-      const data = {
-        email: email,
-        password: password
-      };
       const key = 'user#' + email.toLowerCase();
       const user = await env.DB.get(key);
+
       if (user === null) {
-        await env.DB.put(key, JSON.stringify(data));
-        return new Response("User created", {status: 200});
+        // const target = await random(0, (10 ** 6) - 1)
+        const hotpSecret = await crypto.randomBytes(24);
+        const recoveryCode = uuidv4();
+
+        // const code = parseInt(speakeasy.hotp({ secret: secret.toString('hex'), encoding: 'hex', counter: 1, algorithm: 'sha1', digits: 6 }))
+        // console.log(code)
+        // const offset = mod(target - code, 10 ** 6)
+        // const uri = speakeasy.otpauthURL({ secret: secret.toString('hex'), encoding: 'hex', label: 'mfchf', type: 'hotp', counter: 1, issuer: 'mfchf', algorithm: 'sha1', digits: 6 })
+        // const salt = await crypto.randomBytes(24)
+        // const hash = await argon2.hash({ pass: password + target, salt, time: 100, mem: 4096, type: argon2.ArgonType.Argon2id })
+        // const pad = xor(hash.hash, secret)
+        // const sha = crypto.createHash('sha256').update(hash.hash).digest('base64')
+        // const out = 'mfchf-argon2id-hotp6#1,' + offset + ',' + pad.toString('base64') + '#' + sha + '#' + salt.toString('base64')
+        // console.log(out)
+        // return { uri, out }
+
+        await env.DB.put(key, JSON.stringify({
+          email, password, recoveryCode, hotpSecret
+        }));
+        return new Response({
+          hotpSecret, recoveryCode
+        }, {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
       }
