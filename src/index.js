@@ -1,13 +1,35 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import './index.scss';
 import reportWebVitals from './reportWebVitals';
+
+import logo from './logo.svg';
+import icon from "./Images/icon-w.png";
+
+import Success from "./Pages/Success";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <div className="splash-bg">
+      <div className="bg-image"></div>
+      <div className="form text-center">
+        <img className="logo" src={icon} alt="MFKDF" />
+        <div className="card text-start">
+          <Router>
+            <Routes>
+              <Route path="/success" element={<Success />} />
+            </Routes>
+          </Router>
+        </div>
+      </div>
+    </div>
   </React.StrictMode>
 );
 
