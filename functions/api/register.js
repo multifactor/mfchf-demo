@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const { v4: uuidv4 } = require('uuid');
 
 const validateEmail = (email) => {
   return email.match(
@@ -28,8 +27,9 @@ export async function onRequest(context) {
 
       if (user === null) {
         // const target = await random(0, (10 ** 6) - 1)
-        const hotpSecret = await crypto.randomBytes(24);
-        const recoveryCode = uuidv4();
+        const hotpSecret = new Uint8Array(24);
+        crypto.getRandomValues(hotpSecret);
+        const recoveryCode = crypto.randomUUID();
 
         // const code = parseInt(speakeasy.hotp({ secret: secret.toString('hex'), encoding: 'hex', counter: 1, algorithm: 'sha1', digits: 6 }))
         // console.log(code)
