@@ -17,7 +17,7 @@ export async function onRequest(context) {
       return new Response("Expected email", {status: 400});
     } else if (!validateEmail(email)) {
       return new Response("Invalid email", {status: 400});
-    } else if (typeof password !== 'string' || code.length === 0) {
+    } else if (typeof password !== 'string' || password.length === 0) {
       return new Response("Expected password", {status: 400});
     } else {
       const data = {
