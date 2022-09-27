@@ -1,6 +1,5 @@
 import React from "react";
-import { Link, Navigate } from "react-router-dom";
-import icon from "../Images/icon-w.png";
+import { Link } from "react-router-dom";
 
 class Success extends React.Component {
   render() {

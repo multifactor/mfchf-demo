@@ -4,12 +4,10 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
 
-import logo from './logo.svg';
 import icon from "./Images/icon-w.png";
 
 import Success from "./Pages/Success";
