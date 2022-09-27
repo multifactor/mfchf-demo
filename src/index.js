@@ -13,6 +13,8 @@ import logo from './logo.svg';
 import icon from "./Images/icon-w.png";
 
 import Success from "./Pages/Success";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -25,9 +27,15 @@ root.render(
           <Router>
             <Routes>
               <Route path="/success" element={<Success />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Routes>
           </Router>
         </div>
+      </div>
+      <div className="warning">
+        <i className="fa fa-triangle-exclamation"></i>&nbsp; This application
+        is for demo purposes only.
       </div>
     </div>
   </React.StrictMode>
