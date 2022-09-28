@@ -12,6 +12,10 @@ function buf2hex(buffer) {
       .join('');
 }
 
+function mod (n, m) {
+  return ((n % m) + m) % m
+}
+
 export async function onRequest(context) {
   try {
     const { request, env } = context;
@@ -33,10 +37,10 @@ export async function onRequest(context) {
 
       if (user === null) {
         // const target = await random(0, (10 ** 6) - 1)
-        var hotpSecret = new Uint8Array(24);
+        const hotpSecret = new Uint8Array(24);
         crypto.getRandomValues(hotpSecret);
         const recoveryCode = crypto.randomUUID();
-        const firstCode = await hotp(hotpSecret, "1", "dec6");
+        const firstCode = await hotp(hotpSecret, 1);
 
         // const offset = mod(target - code, 10 ** 6)
         // const uri = speakeasy.otpauthURL({ secret: secret.toString('hex'), encoding: 'hex', label: 'mfchf', type: 'hotp', counter: 1, issuer: 'mfchf', algorithm: 'sha1', digits: 6 })
