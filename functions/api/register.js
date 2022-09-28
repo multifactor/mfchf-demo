@@ -51,7 +51,7 @@ export async function onRequest(context) {
           email, password, recoveryCode, hotpSecret
         }));
         return new Response(JSON.stringify({
-          buf2hex(hotpSecret), recoveryCode
+          hotpSecret: buf2hex(hotpSecret), recoveryCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
