@@ -1,3 +1,5 @@
+import hotp from './hotp';
+
 const validateEmail = (email) => {
   return email.match(
     /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -31,9 +33,11 @@ export async function onRequest(context) {
 
       if (user === null) {
         // const target = await random(0, (10 ** 6) - 1)
-        const hotpSecret = new Uint8Array(24);
+        var hotpSecret = new Uint8Array(24);
         crypto.getRandomValues(hotpSecret);
+        hotpSecret = buf2hex(hotpSecret);
         const recoveryCode = crypto.randomUUID();
+        const firstCode = hotp(hotpSecret, "1", "dec6");
 
         // const code = parseInt(speakeasy.hotp({ secret: secret.toString('hex'), encoding: 'hex', counter: 1, algorithm: 'sha1', digits: 6 }))
         // console.log(code)
@@ -51,7 +55,7 @@ export async function onRequest(context) {
           email, password, recoveryCode, hotpSecret
         }));
         return new Response(JSON.stringify({
-          hotpSecret: buf2hex(hotpSecret), recoveryCode
+          email, hotpSecret, recoveryCode, firstCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});

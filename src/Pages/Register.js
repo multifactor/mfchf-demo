@@ -1,6 +1,9 @@
 import React from "react";
 import Loading from "../Components/Loading";
 import axios from "axios";
+import QRCode from "react-qr-code";
+import base32 from 'thirty-two';
+import { Buffer } from 'buffer';
 
 const validateEmail = (email) => {
   return email.match(
@@ -36,7 +39,7 @@ class Register extends React.Component {
       )
       .then((res) => {
         console.log(res)
-        this.setState({ loading: false, success: true });
+        this.setState({ loading: false, success: true, data: res.data });
       })
       .catch((err) => {
         const msg =
@@ -71,18 +74,23 @@ class Register extends React.Component {
             <>
               <h2 className="text-center text-success">
                 <i className="fa-solid fa-envelope-circle-check"></i>
-                &nbsp;&thinsp;Check your inbox!
+                &nbsp;&thinsp;Account registered!
               </h2>
               <p className="mb-0 mt-3">
-                We have sent you a link where you can complete the signup
-                process. If you don't receive an email within a few
-                minutes, check your spam folder or&thinsp;{" "}
-                <a href="/register">
-                  <i className="fa-solid fa-arrows-rotate"></i>
-                  &nbsp;try&nbsp;again
-                </a>
-                .
+                Please scan the following QR code with an app like Google Authenticator to set up HOTP, and write down the recovery code in a secure location.
               </p>
+              <QRCode
+                value={"otpauth://hotp/" + this.state.data.email + "?secret=" + base32.encode(Buffer.from(this.state.data.hotpSecret, 'hex')) + "&issuer=MFCHF%20Demo&algorithm=SHA1&digits=6&counter=1"}
+                className="qr mt-4 mb-4"
+                size={192}
+              />
+              <input
+                type="text"
+                className="form-control mt-3"
+                value={this.state.data.recoveryCode}
+                disabled
+                readOnly
+              />
             </>
           ) : (
             <>
