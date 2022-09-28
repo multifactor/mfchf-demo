@@ -1,4 +1,4 @@
-export function hotp(key, counter, format) {
+export default function hotp(key, counter, format) {
 
     function hotp_hexkeytobytestream(s) {
         // s is the key to be converted in bytes
