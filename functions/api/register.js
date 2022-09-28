@@ -1,5 +1,6 @@
 import hotp from './hotp';
-const argon2 = require('argon2-browser')
+import argon2 from './argon2';
+
 
 const validateEmail = (email) => {
   return email.match(
@@ -52,7 +53,7 @@ export async function onRequest(context) {
         // const out = 'mfchf-argon2id-hotp6#1,' + offset + ',' + pad.toString('base64') + '#' + sha + '#' + salt.toString('base64')
 
         await env.DB.put(key, JSON.stringify({
-          offset, salt,
+          offset, salt, ctr: 0
         }));
         return new Response(JSON.stringify({
           email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode
