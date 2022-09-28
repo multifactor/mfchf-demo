@@ -1,6 +1,6 @@
 import hotp from './hotp';
 import argon2 from './argon2';
-
+const xor = require('buffer-xor');
 
 const validateEmail = (email) => {
   return email.match(
@@ -47,13 +47,19 @@ export async function onRequest(context) {
         const salt = new Uint8Array(24);
         crypto.getRandomValues(salt);
 
-        // const hash = await argon2.hash({ pass: password + target, salt, time: 100, mem: 4096, type: argon2.ArgonType.Argon2id })
-        // const pad = xor(hash.hash, secret)
-        // const sha = crypto.createHash('sha256').update(hash.hash).digest('base64')
-        // const out = 'mfchf-argon2id-hotp6#1,' + offset + ',' + pad.toString('base64') + '#' + sha + '#' + salt.toString('base64')
+        const mainHash = await argon2.hash({ pass: password + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
+        const hotpRecoveryHash = await argon2.hash({ pass: password + recoveryCode, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
+        const passwordRecoveryHash = await argon2.hash({ pass: recoveryCode + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
+        const pad = xor(hash.hash, hotpSecret)
+
+        const laterCode = await hotp(hotpSecret, 3);
+        const windowOffset = mod(target - nextCode, 10 ** 6)
 
         await env.DB.put(key, JSON.stringify({
-          offset, salt, ctr: 0
+          offset, windowOffset, salt, ctr: 0, pad,
+          mainHash: buf2hex(await crypto.subtle.digest("SHA-256", mainHash.hash)),
+          hotpRecoveryHash: buf2hex(hotpRecoveryHash.hash),
+          passwordRecoveryHash: buf2hex(passwordRecoveryHash.hash)
         }));
         return new Response(JSON.stringify({
           email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode
