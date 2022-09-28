@@ -1,4 +1,5 @@
 import hotp from './hotp';
+const argon2 = require('argon2-browser')
 
 const validateEmail = (email) => {
   return email.match(
@@ -36,29 +37,25 @@ export async function onRequest(context) {
       const user = await env.DB.get(key);
 
       if (user === null) {
-        // const target = await random(0, (10 ** 6) - 1)
-        const hotpSecret = new Uint8Array(8);
+        const target = Math.floor(Math.random() * (10 ** 6));
+        const hotpSecret = new Uint8Array(24);
         crypto.getRandomValues(hotpSecret);
         const recoveryCode = crypto.randomUUID();
-        const zeroCode = await hotp(hotpSecret, 0);
-        const firstCode = await hotp(hotpSecret, 1);
-        const secondCode = await hotp(hotpSecret, 2);
+        const nextCode = await hotp(hotpSecret, 2);
+        const offset = mod(target - nextCode, 10 ** 6)
+        const salt = new Uint8Array(24);
+        crypto.getRandomValues(salt);
 
-        // const offset = mod(target - code, 10 ** 6)
-        // const uri = speakeasy.otpauthURL({ secret: secret.toString('hex'), encoding: 'hex', label: 'mfchf', type: 'hotp', counter: 1, issuer: 'mfchf', algorithm: 'sha1', digits: 6 })
-        // const salt = await crypto.randomBytes(24)
         // const hash = await argon2.hash({ pass: password + target, salt, time: 100, mem: 4096, type: argon2.ArgonType.Argon2id })
         // const pad = xor(hash.hash, secret)
         // const sha = crypto.createHash('sha256').update(hash.hash).digest('base64')
         // const out = 'mfchf-argon2id-hotp6#1,' + offset + ',' + pad.toString('base64') + '#' + sha + '#' + salt.toString('base64')
-        // console.log(out)
-        // return { uri, out }
 
         await env.DB.put(key, JSON.stringify({
-          email, password, recoveryCode, hotpSecret
+          offset, salt,
         }));
         return new Response(JSON.stringify({
-          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, zeroCode, firstCode, secondCode
+          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
