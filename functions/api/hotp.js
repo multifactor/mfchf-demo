@@ -1,7 +1,7 @@
 export default async function hotp(secret, counter) {
   // https://tools.ietf.org/html/rfc4226#section-5.1
   let formatCounter = (counter) => {
-    let binStr = ('0'.repeat(64) + counter.toString(2)).slice(-64);
+    let binStr = counter.toString(2).padStart(64, '0');
     let intArr = [];
 
     for (let i = 0; i < 8; i++) {
@@ -11,7 +11,6 @@ export default async function hotp(secret, counter) {
     return Uint8Array.from(intArr).buffer;
   };
 
-  // https://tools.ietf.org/html/rfc4226#section-5.4
   let truncate = (buffer) => {
     let offset = buffer[buffer.length - 1] & 0xf;
     return (
