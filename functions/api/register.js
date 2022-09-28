@@ -1,6 +1,5 @@
 import hotp from './hotp';
 import argon2 from './argon2';
-const xor = require('buffer-xor');
 
 const validateEmail = (email) => {
   return email.match(
@@ -50,13 +49,13 @@ export async function onRequest(context) {
         const mainHash = await argon2.hash({ pass: password + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
         const hotpRecoveryHash = await argon2.hash({ pass: password + recoveryCode, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
         const passwordRecoveryHash = await argon2.hash({ pass: recoveryCode + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
-        const pad = xor(hash.hash, hotpSecret)
+        // const pad = xor(hash.hash, hotpSecret)
 
         const laterCode = await hotp(hotpSecret, 3);
-        const windowOffset = mod(target - nextCode, 10 ** 6)
+        const windowOffset = mod(target - laterCode, 10 ** 6)
 
         await env.DB.put(key, JSON.stringify({
-          offset, windowOffset, salt, ctr: 0, pad,
+          offset, windowOffset, salt, ctr: 0, // pad,
           mainHash: buf2hex(await crypto.subtle.digest("SHA-256", mainHash.hash)),
           hotpRecoveryHash: buf2hex(hotpRecoveryHash.hash),
           passwordRecoveryHash: buf2hex(passwordRecoveryHash.hash)
