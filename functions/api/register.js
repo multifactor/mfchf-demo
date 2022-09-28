@@ -37,10 +37,12 @@ export async function onRequest(context) {
 
       if (user === null) {
         // const target = await random(0, (10 ** 6) - 1)
-        const hotpSecret = new Uint8Array(24);
+        const hotpSecret = new Uint8Array(8);
         crypto.getRandomValues(hotpSecret);
         const recoveryCode = crypto.randomUUID();
+        const zeroCode = await hotp(hotpSecret, 0);
         const firstCode = await hotp(hotpSecret, 1);
+        const secondCode = await hotp(hotpSecret, 2);
 
         // const offset = mod(target - code, 10 ** 6)
         // const uri = speakeasy.otpauthURL({ secret: secret.toString('hex'), encoding: 'hex', label: 'mfchf', type: 'hotp', counter: 1, issuer: 'mfchf', algorithm: 'sha1', digits: 6 })
@@ -56,7 +58,7 @@ export async function onRequest(context) {
           email, password, recoveryCode, hotpSecret
         }));
         return new Response(JSON.stringify({
-          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, firstCode
+          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, zeroCode, firstCode, secondCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
