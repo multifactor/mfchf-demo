@@ -36,7 +36,7 @@ export async function onRequest(context) {
         var hotpSecret = new Uint8Array(24);
         crypto.getRandomValues(hotpSecret);
         const recoveryCode = crypto.randomUUID();
-        const firstCode = hotp(hotpSecret, "1", "dec6");
+        const firstCode = await hotp(hotpSecret, "1", "dec6");
 
         // const code = parseInt(speakeasy.hotp({ secret: secret.toString('hex'), encoding: 'hex', counter: 1, algorithm: 'sha1', digits: 6 }))
         // console.log(code)
