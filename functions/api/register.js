@@ -4,6 +4,12 @@ const validateEmail = (email) => {
   );
 };
 
+function buf2hex(buffer) {
+  return [...new Uint8Array(buffer)]
+      .map(x => x.toString(16).padStart(2, '0'))
+      .join('');
+}
+
 export async function onRequest(context) {
   try {
     const { request, env } = context;
@@ -45,7 +51,7 @@ export async function onRequest(context) {
           email, password, recoveryCode, hotpSecret
         }));
         return new Response(JSON.stringify({
-          hotpSecret, recoveryCode
+          buf2hex(hotpSecret), recoveryCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
