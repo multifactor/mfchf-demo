@@ -44,9 +44,9 @@ export async function onRequest(context) {
         await env.DB.put(key, JSON.stringify({
           email, password, recoveryCode, hotpSecret
         }));
-        return new Response({
+        return new Response(JSON.stringify({
           hotpSecret, recoveryCode
-        }, {status: 200});
+        }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});
       }
