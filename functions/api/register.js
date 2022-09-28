@@ -35,7 +35,6 @@ export async function onRequest(context) {
         // const target = await random(0, (10 ** 6) - 1)
         var hotpSecret = new Uint8Array(24);
         crypto.getRandomValues(hotpSecret);
-        hotpSecret = buf2hex(hotpSecret);
         const recoveryCode = crypto.randomUUID();
         const firstCode = hotp(hotpSecret, "1", "dec6");
 
@@ -55,7 +54,7 @@ export async function onRequest(context) {
           email, password, recoveryCode, hotpSecret
         }));
         return new Response(JSON.stringify({
-          email, hotpSecret, recoveryCode, firstCode
+          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, firstCode
         }), {status: 200});
       } else {
         return new Response("User already exists", {status: 400});

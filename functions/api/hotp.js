@@ -1,68 +1,32 @@
-export default function hotp(key, counter, format) {
+let formatCounter = (counter) => {
+  let binStr = ('0'.repeat(64) + counter.toString(2)).slice(-64);
+  let intArr = [];
 
-    function hotp_hexkeytobytestream(s) {
-        // s is the key to be converted in bytes
-        var b = new Array();
-        var last = s.length;
-        for (var i = 0; i < last; i = i + 2) {
-            var x = s[i] + s[i + 1];
-            x.toUpperCase();
-            x = "0x" + x;
-            x = parseInt(x);
-            b[i] = String.fromCharCode(x);
-        }
-        var ret = new String();
-        ret = b.join('');
-        return ret;
+  for (let i = 0; i < 8; i++) {
+    intArr[i] = parseInt(binStr.slice(i * 8, i * 8 + 8), 2);
+  }
 
-    }
-    function hotp_movingfactortohex(count) {
-        // count is the moving factor in OTP to be converted in bytes
-        v = decimaltohex(count, 16);
-        var decb = new Array();
-        lhex = Crypto.util.hexToBytes(v);
-        for (var i = 0; i < lhex.length; i++) {
-            decb[i] = String.fromCharCode(lhex[i]);
-        }
-        var retval = new String();
-        retval = decb.join('');
-        return retval;
-    }
+  return Uint8Array.from(intArr).buffer;
+};
 
-    function decimaltohex(d, padding) {
-        // d is the decimal value
-        // padding is the padding to apply (O pad)
-        var hex = Number(d).toString(16);
-        padding = typeof(padding) === "undefined" || padding === null ? padding = 2 : padding;
-        while (hex.length < padding) {
-            hex = "0" + hex;
-        }
-        return hex;
-    }
+let truncate = (buffer) => {
+  let offset = buffer[buffer.length - 1] & 0xf;
+  return (
+    ((buffer[offset] & 0x7f) << 24) |
+    ((buffer[offset + 1] & 0xff) << 16) |
+    ((buffer[offset + 2] & 0xff) << 8) |
+    (buffer[offset + 3] & 0xff)
+  );
+};
 
-    function truncatedvalue(h, p) {
-        // h is the hash value
-        // p is precision
-        offset = h[19] & 0xf;
-        v = (h[offset] & 0x7f) << 24 | (h[offset + 1] & 0xff) << 16 | (h[offset + 2] & 0xff) << 8 | (h[offset + 3] & 0xff);
-        v = "" + v;
-        v = v.substr(v.length - p, p);
-        return v;
-    }
-
-    var hmacBytes = Crypto.HMAC(Crypto.SHA1, Crypto.charenc.Binary.stringToBytes((hotp_movingfactortohex(counter))), Crypto.charenc.Binary.stringToBytes(hotp_hexkeytobytestream(key)));
-
-    if (format == "hex40") {
-        return hmacBytes.substring(0, 10);
-    } else if (format == "dec6") {
-        return truncatedvalue(Crypto.util.hexToBytes(hmacBytes), 6);
-    } else if (format == "dec7") {
-        return truncatedvalue(Crypto.util.hexToBytes(hmacBytes), 7);
-    } else if (format == "dec8") {
-        return truncatedvalue(Crypto.util.hexToBytes(hmacBytes), 8);
-    }
-    else {
-        return "unknown format";
-    }
-
+export default async function hotp(secret, counter) {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    secret,
+    { name: 'HMAC', hash: {name: 'SHA-1'} },
+    false,
+    ['sign']
+  )
+  const hmac = crypto.subtle.sign('HMAC', key, formatCounter(counter))
+  return ('000000' + (truncate(new Uint8Array(result)) % 10 ** 6 )).slice(-6)
 }
