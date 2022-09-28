@@ -38,8 +38,6 @@ export async function onRequest(context) {
         const recoveryCode = crypto.randomUUID();
         const firstCode = await hotp(hotpSecret, "1", "dec6");
 
-        // const code = parseInt(speakeasy.hotp({ secret: secret.toString('hex'), encoding: 'hex', counter: 1, algorithm: 'sha1', digits: 6 }))
-        // console.log(code)
         // const offset = mod(target - code, 10 ** 6)
         // const uri = speakeasy.otpauthURL({ secret: secret.toString('hex'), encoding: 'hex', label: 'mfchf', type: 'hotp', counter: 1, issuer: 'mfchf', algorithm: 'sha1', digits: 6 })
         // const salt = await crypto.randomBytes(24)

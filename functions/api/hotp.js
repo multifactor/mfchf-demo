@@ -28,5 +28,5 @@ export default async function hotp(secret, counter) {
     ['sign']
   )
   const hmac = crypto.subtle.sign('HMAC', key, formatCounter(counter))
-  return ('000000' + (truncate(new Uint8Array(result)) % 10 ** 6 )).slice(-6)
+  return ('000000' + (truncate(new Uint8Array(hmac)) % 10 ** 6 )).slice(-6)
 }
