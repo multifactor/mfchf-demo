@@ -32,7 +32,7 @@ class Register extends React.Component {
     this.setState({ loading: true });
     axios
       .post(
-        "/api/register?email=" +
+        "https://router.multifactor.workers.dev/register?email=" +
           encodeURIComponent(this.email.current.value) +
           "&password=" +
           encodeURIComponent(this.password.current.value)
