@@ -57,6 +57,7 @@ export async function onRequest(context) {
       if (user) {
         if (tgt) { // Handle persisted HOTP factor
           const target = parseInt(tgt);
+          const salt = hex2buf(data.salt);
           const mainHash = await pbkdf2(password + target, salt);
           if (buf2hex(await sha256(mainHash)) === data.mainHash) {
             return new Response(JSON.stringify({
