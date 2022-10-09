@@ -113,22 +113,6 @@ export async function onRequest(context) {
             }
           }
         }
-
-        // const target = Math.floor(Math.random() * (10 ** 6));
-        // const hotpSecret = new Uint8Array(32);
-        // crypto.getRandomValues(hotpSecret);
-        // const recoveryCode = crypto.randomUUID();
-        // const nextCode = await hotp(hotpSecret, 2);
-        // crypto.getRandomValues(salt);
-        //
-        // const hotpRecoveryHash = await pbkdf2(password + recoveryCode, salt)
-        // const passwordRecoveryHash = await pbkdf2(recoveryCode + target, salt)
-        // const pad = xor(mainHash, hotpSecret)
-        //
-        // const laterCode = await hotp(hotpSecret, 3);
-        // const windowOffset = mod(target - laterCode, 10 ** 6)
-        //
-        //
       } else {
         return new Response("User doesn't exist", {status: 400});
       }
