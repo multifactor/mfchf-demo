@@ -20,7 +20,9 @@ function mod (n, m) {
 }
 
 const sha256 = async (data) => {
-  const hash = await crypto.subtle.digest("SHA-256", data);
+  const hash = await crypto.subtle.digest({
+    name: 'SHA-256'
+  }, data.buffer);
   return new Uint8Array(hash);
 }
 
