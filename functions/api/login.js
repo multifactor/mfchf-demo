@@ -13,6 +13,8 @@ function buf2hex(buffer) {
       .join('');
 }
 
+const hex2buf = (hexString) => Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+
 function mod (n, m) {
   return ((n % m) + m) % m
 }
@@ -35,6 +37,7 @@ export async function onRequest(context) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email').trim().toLowerCase();
     const password = searchParams.get('password').trim();
+    const otp = searchParams.get('otp').trim();
 
     if (request.method !== "POST") {
       return new Response("Expected POST", {status: 400});
@@ -44,43 +47,56 @@ export async function onRequest(context) {
       return new Response("Invalid email", {status: 400});
     } else if (typeof password !== 'string' || password.length === 0) {
       return new Response("Expected password", {status: 400});
+    } else if (typeof otp !== 'string' || password.length === 0) {
+      return new Response("Expected totp", {status: 400});
     } else {
       const key = 'user#' + email.toLowerCase();
       const user = await env.DB.get(key);
 
-      if (user === null || true) {
-        const target = Math.floor(Math.random() * (10 ** 6));
-        const hotpSecret = new Uint8Array(32);
-        crypto.getRandomValues(hotpSecret);
-        const recoveryCode = crypto.randomUUID();
-        const nextCode = await hotp(hotpSecret, 2);
-        const offset = mod(target - nextCode, 10 ** 6)
-        const salt = new Uint8Array(32);
-        crypto.getRandomValues(salt);
+      if (user) {
+        const data = JSON.parse(user);
 
-        const mainHash = await pbkdf2(password + target, salt)
-        const hotpRecoveryHash = await pbkdf2(password + recoveryCode, salt)
-        const passwordRecoveryHash = await pbkdf2(recoveryCode + target, salt)
-        const pad = xor(mainHash, hotpSecret)
+        const target = mod(data.offset + otp, 10 ** 6)
 
-        const laterCode = await hotp(hotpSecret, 3);
-        const windowOffset = mod(target - laterCode, 10 ** 6)
+        const salt = hex2buf(data.salt);
+        const mainHash = await pbkdf2(password + target, salt);
 
-        await env.DB.put(key, JSON.stringify({
-          offset,
-          windowOffset,
-          salt: buf2hex(salt),
-          ctr: 2,
-          pad: buf2hex(pad),
-          mainHash: buf2hex(sha256(mainHash)),
-          hotpRecoveryHash: buf2hex(sha256(hotpRecoveryHash)),
-          passwordRecoveryHash: buf2hex(sha256(passwordRecoveryHash))
-        }));
-        return new Response(JSON.stringify({
-          email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode
-        }), {status: 200});
+        if (buf2hex(sha256(mainHash)) === data.mainHash) {
+          return new Response(JSON.stringify({
+            valid: true
+          }), {status: 200});
+        } else {
+          return new Response(JSON.stringify({
+            valid: false
+          }), {status: 200});
+        }
+
+        // const target = Math.floor(Math.random() * (10 ** 6));
+        // const hotpSecret = new Uint8Array(32);
+        // crypto.getRandomValues(hotpSecret);
+        // const recoveryCode = crypto.randomUUID();
+        // const nextCode = await hotp(hotpSecret, 2);
+        // crypto.getRandomValues(salt);
+        //
+        // const hotpRecoveryHash = await pbkdf2(password + recoveryCode, salt)
+        // const passwordRecoveryHash = await pbkdf2(recoveryCode + target, salt)
+        // const pad = xor(mainHash, hotpSecret)
+        //
+        // const laterCode = await hotp(hotpSecret, 3);
+        // const windowOffset = mod(target - laterCode, 10 ** 6)
+        //
+        // await env.DB.put(key, JSON.stringify({
+        //   offset,
+        //   windowOffset,
+        //   salt: buf2hex(salt),
+        //   ctr: 2,
+        //   pad: buf2hex(pad),
+        //   mainHash: buf2hex(mainHash),
+        //   hotpRecoveryHash: buf2hex(hotpRecoveryHash),
+        //   passwordRecoveryHash: buf2hex(passwordRecoveryHash)
+        // }));
       } else {
-        return new Response("User already exists", {status: 400});
+        return new Response("User doesn't exist", {status: 400});
       }
     }
   } catch (err) {
