@@ -55,6 +55,7 @@ export async function onRequest(context) {
       const user = await env.DB.get(key);
 
       if (user) {
+        const data = JSON.parse(user);
         if (tgt) { // Handle persisted HOTP factor
           const target = parseInt(tgt);
           const salt = hex2buf(data.salt);
@@ -69,7 +70,6 @@ export async function onRequest(context) {
             }), {status: 200});
           }
         } else { // Handle non-persisted HOTP factor
-          const data = JSON.parse(user);
           const target = mod(data.offset + parseInt(otp), 10 ** 6);
           const salt = hex2buf(data.salt);
           const mainHash = await pbkdf2(password + target, salt);
