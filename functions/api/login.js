@@ -62,8 +62,18 @@ export async function onRequest(context) {
         const mainHash = await pbkdf2(password + target, salt);
 
         if (buf2hex(await sha256(mainHash)) === data.mainHash) {
+          const hotpSecret = xor(data.pad, mainHash)
+          data.ctr++;
+          const nextCode = await hotp(hotpSecret, data.ctr);
+          const offset = mod(target - nextCode, 10 ** 6)
+          data.offset = offset;
+          const laterCode = await hotp(hotpSecret, data.ctr + 1);
+          const windowOffset = mod(target - laterCode, 10 ** 6)
+          data.windowOffset = windowOffset;
+          await env.DB.put(key, JSON.stringify(data));
           return new Response(JSON.stringify({
-            valid: true
+            valid: true,
+            nextCode, laterCode
           }), {status: 200});
         } else {
           return new Response(JSON.stringify({
@@ -85,16 +95,7 @@ export async function onRequest(context) {
         // const laterCode = await hotp(hotpSecret, 3);
         // const windowOffset = mod(target - laterCode, 10 ** 6)
         //
-        // await env.DB.put(key, JSON.stringify({
-        //   offset,
-        //   windowOffset,
-        //   salt: buf2hex(salt),
-        //   ctr: 2,
-        //   pad: buf2hex(pad),
-        //   mainHash: buf2hex(mainHash),
-        //   hotpRecoveryHash: buf2hex(hotpRecoveryHash),
-        //   passwordRecoveryHash: buf2hex(passwordRecoveryHash)
-        // }));
+        //
       } else {
         return new Response("User doesn't exist", {status: 400});
       }
