@@ -18,7 +18,8 @@ function mod (n, m) {
 }
 
 const sha256 = async (data) => {
-  return await crypto.subtle.digest("SHA-256", data);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return new Uint8Array(hash);
 }
 
 const pbkdf2 = async (pass, salt) => {
@@ -58,8 +59,8 @@ export async function onRequest(context) {
         crypto.getRandomValues(salt);
 
         const mainHash = await pbkdf2(password + target, salt)
-        // const hotpRecoveryHash = await argon2.hash({ pass: password + recoveryCode, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
-        // const passwordRecoveryHash = await argon2.hash({ pass: recoveryCode + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
+        const hotpRecoveryHash = await pbkdf2(password + recoveryCode, salt)
+        const passwordRecoveryHash = await pbkdf2(recoveryCode + target, salt)
         // const pad = xor(hash.hash, hotpSecret)
         const pad = hotpSecret
 
@@ -73,8 +74,8 @@ export async function onRequest(context) {
           ctr: 2,
           pad: buf2hex(pad),
           mainHash: buf2hex(mainHash),
-          // hotpRecoveryHash: buf2hex(hotpRecoveryHash.hash),
-          // passwordRecoveryHash: buf2hex(passwordRecoveryHash.hash)
+          hotpRecoveryHash: buf2hex(hotpRecoveryHash),
+          passwordRecoveryHash: buf2hex(passwordRecoveryHash)
         }));
         return new Response(JSON.stringify({
           email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode
