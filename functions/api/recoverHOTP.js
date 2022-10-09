@@ -87,7 +87,7 @@ export async function onRequest(context) {
             passwordRecoveryHash: buf2hex(await sha256(passwordRecoveryHash))
           }));
           return new Response(JSON.stringify({
-            email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode, laterCode
+            email, hotpSecret: buf2hex(hotpSecret), recoveryCode: rc, nextCode, laterCode
           }), {status: 200});
         } else {
           return new Response(JSON.stringify({
