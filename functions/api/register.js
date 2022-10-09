@@ -18,8 +18,7 @@ function mod (n, m) {
 }
 
 const sha256 = async (data) => {
-  const text = new TextEncoder().encode(buf2hex(data));
-  const hash = await crypto.subtle.digest('SHA-256', text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
   return new Uint8Array(hash);
 }
 
@@ -73,9 +72,9 @@ export async function onRequest(context) {
           salt: buf2hex(salt),
           ctr: 2,
           pad: buf2hex(pad),
-          mainHash: buf2hex(sha256(mainHash)),
-          hotpRecoveryHash: buf2hex(sha256(hotpRecoveryHash)),
-          passwordRecoveryHash: buf2hex(sha256(passwordRecoveryHash))
+          mainHash: buf2hex(await sha256(mainHash)),
+          hotpRecoveryHash: buf2hex(await sha256(hotpRecoveryHash)),
+          passwordRecoveryHash: buf2hex(await sha256(passwordRecoveryHash))
         }));
         return new Response(JSON.stringify({
           email, hotpSecret: buf2hex(hotpSecret), recoveryCode, nextCode

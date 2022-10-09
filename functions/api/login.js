@@ -20,8 +20,7 @@ function mod (n, m) {
 }
 
 const sha256 = async (data) => {
-  const text = new TextEncoder().encode(buf2hex(data));
-  const hash = await crypto.subtle.digest('SHA-256', text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
   return new Uint8Array(hash);
 }
 
@@ -62,7 +61,7 @@ export async function onRequest(context) {
         const salt = hex2buf(data.salt);
         const mainHash = await pbkdf2(password + target, salt);
 
-        if (buf2hex(sha256(mainHash)) === data.mainHash) {
+        if (buf2hex(await sha256(mainHash)) === data.mainHash) {
           return new Response(JSON.stringify({
             valid: true
           }), {status: 200});
