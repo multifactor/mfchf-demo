@@ -1,6 +1,6 @@
 import hotp from './hotp';
 import argon2 from './argon2';
-const xor = require('buffer-xor');
+// const xor = require('buffer-xor');
 
 const validateEmail = (email) => {
   return email.match(
@@ -50,7 +50,8 @@ export async function onRequest(context) {
         const mainHash = await argon2.hash({ pass: password + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
         const hotpRecoveryHash = await argon2.hash({ pass: password + recoveryCode, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
         const passwordRecoveryHash = await argon2.hash({ pass: recoveryCode + target, salt, time: 50, mem: 1024, type: argon2.ArgonType.Argon2id })
-        const pad = xor(hash.hash, hotpSecret)
+        // const pad = xor(hash.hash, hotpSecret)
+        const pad = hotpSecret
 
         const laterCode = await hotp(hotpSecret, 3);
         const windowOffset = mod(target - laterCode, 10 ** 6)
