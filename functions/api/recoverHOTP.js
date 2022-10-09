@@ -55,7 +55,6 @@ export async function onRequest(context) {
 
       if (user) {
         const data = JSON.parse(user);
-        const target = mod(data.offset + parseInt(otp), 10 ** 6);
         const salt = hex2buf(data.salt);
 
         const hotpRecoveryHash = await pbkdf2(password + rc, salt)
