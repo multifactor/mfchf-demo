@@ -55,12 +55,9 @@ export async function onRequest(context) {
 
       if (user) {
         const data = JSON.parse(user);
-
         const target = mod(data.offset + parseInt(otp), 10 ** 6)
-
         const salt = hex2buf(data.salt);
         const mainHash = await pbkdf2(password + target, salt);
-
         if (buf2hex(await sha256(mainHash)) === data.mainHash) {
           const hotpSecret = xor(data.pad, mainHash)
           data.ctr++;
@@ -73,12 +70,32 @@ export async function onRequest(context) {
           await env.DB.put(key, JSON.stringify(data));
           return new Response(JSON.stringify({
             valid: true,
-            nextCode, laterCode
+            nextCode, laterCode, target
           }), {status: 200});
         } else {
-          return new Response(JSON.stringify({
-            valid: false
-          }), {status: 200});
+          const data = JSON.parse(user);
+          const target = mod(data.windowOffset + parseInt(otp), 10 ** 6)
+          const salt = hex2buf(data.salt);
+          const mainHash = await pbkdf2(password + target, salt);
+          if (buf2hex(await sha256(mainHash)) === data.mainHash) {
+            const hotpSecret = xor(data.pad, mainHash)
+            data.ctr += 2;
+            const nextCode = await hotp(hotpSecret, data.ctr);
+            const offset = mod(target - nextCode, 10 ** 6);
+            data.offset = offset;
+            const laterCode = await hotp(hotpSecret, data.ctr + 1);
+            const windowOffset = mod(target - laterCode, 10 ** 6);
+            data.windowOffset = windowOffset;
+            await env.DB.put(key, JSON.stringify(data));
+            return new Response(JSON.stringify({
+              valid: true,
+              nextCode, laterCode, target
+            }), {status: 200});
+          } else {
+            return new Response(JSON.stringify({
+              valid: false
+            }), {status: 200});
+          }
         }
 
         // const target = Math.floor(Math.random() * (10 ** 6));
