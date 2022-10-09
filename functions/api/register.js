@@ -58,7 +58,7 @@ export async function onRequest(context) {
 
         await env.DB.put(key, JSON.stringify({
           offset, windowOffset, salt, ctr: 0, pad,
-          mainHash: buf2hex(await crypto.subtle.digest("SHA-256", mainHash.hash)),
+          // mainHash: buf2hex(await crypto.subtle.digest("SHA-256", mainHash.hash)),
           hotpRecoveryHash: buf2hex(hotpRecoveryHash.hash),
           passwordRecoveryHash: buf2hex(passwordRecoveryHash.hash)
         }));
@@ -73,3 +73,5 @@ export async function onRequest(context) {
     return new Response("Internal error: " + err.name + ": " + err.message, {status: 500});
   }
 }
+
+export default onRequest
