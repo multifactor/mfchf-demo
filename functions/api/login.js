@@ -49,43 +49,37 @@ export async function onRequest(context) {
     } else if (typeof password !== 'string' || password.length === 0) {
       return new Response("Expected password", {status: 400});
     } else if ((typeof otp !== 'string' || otp.length === 0) && (typeof tgt !== 'string' || tgt.length === 0)) {
-      return new Response("Expected otp or tgt", {status: 400});
+      return new Response("Expected otp or target", {status: 400});
     } else {
       const key = 'user#' + email.toLowerCase();
       const user = await env.DB.get(key);
 
       if (user) {
-        const data = JSON.parse(user);
-        const target = tgt ? parseInt(tgt) : mod(data.offset + parseInt(otp), 10 ** 6);
-        const salt = hex2buf(data.salt);
-        const mainHash = await pbkdf2(password + target, salt);
-        if (buf2hex(await sha256(mainHash)) === data.mainHash) {
-          const hotpSecret = xor(data.pad, mainHash)
-          data.ctr++;
-          const nextCode = await hotp(hotpSecret, data.ctr);
-          const offset = mod(target - nextCode, 10 ** 6)
-          data.offset = offset;
-          const laterCode = await hotp(hotpSecret, data.ctr + 1);
-          const windowOffset = mod(target - laterCode, 10 ** 6)
-          data.windowOffset = windowOffset;
-          await env.DB.put(key, JSON.stringify(data));
-          return new Response(JSON.stringify({
-            valid: true,
-            nextCode, laterCode, target
-          }), {status: 200});
-        } else {
-          const data = JSON.parse(user);
-          const target = mod(data.windowOffset + parseInt(otp), 10 ** 6)
-          const salt = hex2buf(data.salt);
+        if (tgt) { // Handle persisted HOTP factor
+          const target = parseInt(tgt);
           const mainHash = await pbkdf2(password + target, salt);
           if (buf2hex(await sha256(mainHash)) === data.mainHash) {
+            return new Response(JSON.stringify({
+              valid: true
+            }), {status: 200});
+          } else {
+            return new Response(JSON.stringify({
+              valid: false
+            }), {status: 200});
+          }
+        } else { // Handle non-persisted HOTP factor
+          const data = JSON.parse(user);
+          const target = mod(data.offset + parseInt(otp), 10 ** 6);
+          const salt = hex2buf(data.salt);
+          const mainHash = await pbkdf2(password + target, salt);
+          if (buf2hex(await sha256(mainHash)) === data.mainHash) { // HOTP counter is synchronized
             const hotpSecret = xor(data.pad, mainHash)
-            data.ctr += 2;
+            data.ctr++;
             const nextCode = await hotp(hotpSecret, data.ctr);
-            const offset = mod(target - nextCode, 10 ** 6);
+            const offset = mod(target - nextCode, 10 ** 6)
             data.offset = offset;
             const laterCode = await hotp(hotpSecret, data.ctr + 1);
-            const windowOffset = mod(target - laterCode, 10 ** 6);
+            const windowOffset = mod(target - laterCode, 10 ** 6)
             data.windowOffset = windowOffset;
             await env.DB.put(key, JSON.stringify(data));
             return new Response(JSON.stringify({
@@ -93,9 +87,29 @@ export async function onRequest(context) {
               nextCode, laterCode, target
             }), {status: 200});
           } else {
-            return new Response(JSON.stringify({
-              valid: false
-            }), {status: 200});
+            const data = JSON.parse(user);
+            const target = mod(data.windowOffset + parseInt(otp), 10 ** 6)
+            const salt = hex2buf(data.salt);
+            const mainHash = await pbkdf2(password + target, salt);
+            if (buf2hex(await sha256(mainHash)) === data.mainHash) { // HOTP counter is desynchronized by 1
+              const hotpSecret = xor(data.pad, mainHash)
+              data.ctr += 2;
+              const nextCode = await hotp(hotpSecret, data.ctr);
+              const offset = mod(target - nextCode, 10 ** 6);
+              data.offset = offset;
+              const laterCode = await hotp(hotpSecret, data.ctr + 1);
+              const windowOffset = mod(target - laterCode, 10 ** 6);
+              data.windowOffset = windowOffset;
+              await env.DB.put(key, JSON.stringify(data));
+              return new Response(JSON.stringify({
+                valid: true,
+                nextCode, laterCode, target
+              }), {status: 200});
+            } else {
+              return new Response(JSON.stringify({
+                valid: false
+              }), {status: 200});
+            }
           }
         }
 
