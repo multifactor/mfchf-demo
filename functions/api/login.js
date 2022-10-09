@@ -37,7 +37,8 @@ export async function onRequest(context) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email').trim().toLowerCase();
     const password = searchParams.get('password').trim();
-    const otp = searchParams.get('otp').trim();
+    const otp = searchParams.get('otp');
+    const tgt = searchParams.get('target');
 
     if (request.method !== "POST") {
       return new Response("Expected POST", {status: 400});
@@ -47,15 +48,15 @@ export async function onRequest(context) {
       return new Response("Invalid email", {status: 400});
     } else if (typeof password !== 'string' || password.length === 0) {
       return new Response("Expected password", {status: 400});
-    } else if (typeof otp !== 'string' || password.length === 0) {
-      return new Response("Expected totp", {status: 400});
+    } else if ((typeof otp !== 'string' || otp.length === 0) && (typeof tgt !== 'string' || tgt.length === 0)) {
+      return new Response("Expected otp or tgt", {status: 400});
     } else {
       const key = 'user#' + email.toLowerCase();
       const user = await env.DB.get(key);
 
       if (user) {
         const data = JSON.parse(user);
-        const target = mod(data.offset + parseInt(otp), 10 ** 6)
+        const target = tgt ? parseInt(tgt) : mod(data.offset + parseInt(otp), 10 ** 6);
         const salt = hex2buf(data.salt);
         const mainHash = await pbkdf2(password + target, salt);
         if (buf2hex(await sha256(mainHash)) === data.mainHash) {
