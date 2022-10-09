@@ -1,5 +1,5 @@
 import hotp from './hotp';
-import argon2 from './argon2';
+// import argon2 from './argon2';
 // const xor = require('buffer-xor');
 
 const validateEmail = (email) => {
