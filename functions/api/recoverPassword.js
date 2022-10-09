@@ -64,8 +64,7 @@ export async function onRequest(context) {
         const passwordRecoveryHash = await pbkdf2(rc + target, salt)
 
         if (buf2hex(await sha256(passwordRecoveryHash)) === data.passwordRecoveryHash) {
-
-          const hotpSecret = xor(data.pad, mainHash)
+          const hotpSecret = xor(data.rpad, passwordRecoveryHash)
           data.ctr++;
           const nextCode = await hotp(hotpSecret, data.ctr);
           const offset = mod(target - nextCode, 10 ** 6)

@@ -61,7 +61,9 @@ export async function onRequest(context) {
         const mainHash = await pbkdf2(password + target, salt)
         const hotpRecoveryHash = await pbkdf2(password + recoveryCode, salt)
         const passwordRecoveryHash = await pbkdf2(recoveryCode + target, salt)
+
         const pad = xor(mainHash, hotpSecret)
+        const rpad = xor(passwordRecoveryHash, hotpSecret)
 
         const laterCode = await hotp(hotpSecret, 3);
         const windowOffset = mod(target - laterCode, 10 ** 6)
@@ -72,6 +74,7 @@ export async function onRequest(context) {
           salt: buf2hex(salt),
           ctr: 2,
           pad: buf2hex(pad),
+          rpad: buf2hex(rpad),
           mainHash: buf2hex(await sha256(mainHash)),
           hotpRecoveryHash: buf2hex(await sha256(hotpRecoveryHash)),
           passwordRecoveryHash: buf2hex(await sha256(passwordRecoveryHash))
