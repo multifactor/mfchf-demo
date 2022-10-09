@@ -48,5 +48,6 @@
   },
   "devDependencies": {
     "wrangler": "^2.0.8"
-  }
+  },
+  "proxy": "https://mfchf-demo.mfkdf.com/"
 }

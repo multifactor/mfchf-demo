@@ -26,8 +26,9 @@ const pbkdf2 = async (data, salt) => {
   return new Uint8Array(await crypto.subtle.deriveBits(params, data, 256))
 }
 
-export default async function onRequest(request) {
+export async function onRequest(context) {
   try {
+    const { request, env } = context;
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email').trim().toLowerCase();
     const password = searchParams.get('password').trim();
@@ -42,7 +43,7 @@ export default async function onRequest(request) {
       return new Response("Expected password", {status: 400});
     } else {
       const key = 'user#' + email.toLowerCase();
-      const user = await DB.get(key);
+      const user = await env.DB.get(key);
 
       if (user === null || true) {
         const target = Math.floor(Math.random() * (10 ** 6));
@@ -63,7 +64,7 @@ export default async function onRequest(request) {
         const laterCode = await hotp(hotpSecret, 3);
         const windowOffset = mod(target - laterCode, 10 ** 6)
 
-        await DB.put(key, JSON.stringify({
+        await env.DB.put(key, JSON.stringify({
           offset,
           windowOffset,
           salt: buf2hex(salt),
