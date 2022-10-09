@@ -72,7 +72,7 @@ export async function onRequest(context) {
           salt: buf2hex(salt),
           ctr: 2,
           pad: buf2hex(pad),
-          mainHash: buf2hex(sha256(mainHash)),
+          mainHash: buf2hex(mainHash),
           // hotpRecoveryHash: buf2hex(hotpRecoveryHash.hash),
           // passwordRecoveryHash: buf2hex(passwordRecoveryHash.hash)
         }));
