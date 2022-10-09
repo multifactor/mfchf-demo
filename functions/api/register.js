@@ -48,7 +48,7 @@ export async function onRequest(context) {
       const key = 'user#' + email.toLowerCase();
       const user = await env.DB.get(key);
 
-      if (user === null || true) {
+      if (user === null) {
         const target = Math.floor(Math.random() * (10 ** 6));
         const hotpSecret = new Uint8Array(32);
         crypto.getRandomValues(hotpSecret);
