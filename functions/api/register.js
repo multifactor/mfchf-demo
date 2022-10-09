@@ -21,9 +21,11 @@ const sha256 = async (data) => {
   return await crypto.subtle.digest("SHA-256", data);
 }
 
-const pbkdf2 = async (data, salt) => {
+const pbkdf2 = async (pass, salt) => {
+  const data = new TextEncoder().encode(pass);
+  const key = await crypto.subtle.importKey('raw', data, 'PBKDF2', false, ['deriveBits']);
   const params = { name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: 1e5 }
-  return new Uint8Array(await crypto.subtle.deriveBits(params, data, 256))
+  return new Uint8Array(await crypto.subtle.deriveBits(params, key, 256))
 }
 
 export async function onRequest(context) {
