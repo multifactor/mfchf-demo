@@ -5,11 +5,11 @@ import axios from "axios";
 import { Navigate, Link } from "react-router-dom";
 import Cookies from "js-cookie";
 
-class Login extends React.Component {
+class RecoverHOTP extends React.Component {
   constructor(props) {
     super(props);
     this.state = { loading: false };
-    this.hotp = React.createRef();
+    this.rc = React.createRef();
     this.password = React.createRef();
     this.email = React.createRef();
     this.submit = this.submit.bind(this);
@@ -24,18 +24,15 @@ class Login extends React.Component {
   submit(e) {
     e.preventDefault();
     this.setState({ loading: true });
-    var qs = "/api/login?email=" + encodeURIComponent(this.email.current.value) +
-      "&password=" + encodeURIComponent(this.password.current.value);
-    if (Cookies.get('target')) {
-      qs += "&target=" + encodeURIComponent(Cookies.get('target'));
-    } else {
-      qs += "&otp=" + encodeURIComponent(this.hotp.current.value)
-    }
+    var qs = "/api/recoverHOTP?email=" + encodeURIComponent(this.email.current.value) +
+      "&password=" + encodeURIComponent(this.password.current.value) +
+      "&rc=" + encodeURIComponent(this.rc.current.value);
+
     axios
       .post(qs)
       .then((res) => {
         if (res.data.valid) {
-          this.setState({ loading: false, success: true, data: res.data, target: res.data.target });
+          this.setState({ loading: false, success: true, data: res.data });
         } else {
           this.setState({ loading: false, success: false, data: res.data,
           error: 'One or more factors were incorrect.' });
@@ -55,7 +52,7 @@ class Login extends React.Component {
 
   render() {
     if (this.state.loading) return <Loading />;
-    if (this.state.success) return <Navigate to={"/remember?target=" + this.state.target} />;
+    if (this.state.success) return <Navigate to="/success" />;
 
     return (<>
       <form action="" onSubmit={this.submit}>
@@ -80,54 +77,18 @@ class Login extends React.Component {
             className="form-control"
             placeholder="Enter your password"
           />
-          <div className="form-text mt-1">
-            <Link
-              to="/recoverpassword"
-            >
-              Forgot password?
-            </Link>
-          </div>
         </div>
-        {Cookies.get('target') ? <div className="mt-3">
+        <div className="mt-3">
           <label htmlFor="email" className="form-label">
-            HOTP code
-          </label>
-          <div className="input-group m-0">
-            <span className="input-group-text">
-              <i className="fa fa-circle-check" />
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              value="Remembered"
-              readOnly
-            />
-            <button
-              className="btn btn-outline-secondary"
-              onClick={this.unremember}
-              type="button"
-            >
-              <i className="fa fa-times" />
-            </button>
-          </div>
-        </div> : <div className="mt-3">
-          <label htmlFor="email" className="form-label">
-            HOTP code
+            Recovery code
           </label>
           <input
-            ref={this.hotp}
-            type="number"
+            ref={this.rc}
+            type="text"
             className="form-control"
-            placeholder="Enter your one-time code"
+            placeholder="Enter your recovery code code"
           />
-          <div className="form-text mt-1">
-            <Link
-              to="/recoverhotp"
-            >
-              Lost HOTP device?
-            </Link>
-          </div>
-        </div>}
+        </div>
         <button
           className="btn btn-success mt-3 mb-0 w-100"
           type="submit"
@@ -150,4 +111,4 @@ class Login extends React.Component {
   }
 }
 
-export default Login;
+export default RecoverHOTP;

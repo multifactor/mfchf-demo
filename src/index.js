@@ -14,6 +14,8 @@ import Success from "./Pages/Success";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Home from "./Pages/Home";
+import Remember from "./Pages/Remember";
+import RecoverHOTP from "./Pages/RecoverHOTP";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -28,6 +30,8 @@ root.render(
               <Route path="/success" element={<Success />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/remember" element={<Remember />} />
+              <Route path="/recoverhotp" element={<RecoverHOTP />} />
               <Route path="/" element={<Home />} />
             </Routes>
           </Router>
