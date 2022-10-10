@@ -4,31 +4,30 @@ import Loading from "../Components/Loading";
 import axios from "axios";
 import { Navigate, Link } from "react-router-dom";
 import Cookies from "js-cookie";
-import QRCode from "react-qr-code";
-import base32 from 'thirty-two';
 
-class RecoverHOTP extends React.Component {
+class RecoverPassword extends React.Component {
   constructor(props) {
     super(props);
     this.state = { loading: false };
-    this.rc = React.createRef();
+    this.hotp = React.createRef();
     this.password = React.createRef();
     this.email = React.createRef();
+    this.rc = React.createRef();
     this.submit = this.submit.bind(this);
   }
 
   submit(e) {
     e.preventDefault();
     this.setState({ loading: true });
-    var qs = "/api/recoverHOTP?email=" + encodeURIComponent(this.email.current.value) +
-      "&password=" + encodeURIComponent(this.password.current.value) +
-      "&rc=" + encodeURIComponent(this.rc.current.value);
-
+    var qs = "/api/recoverPassword?email=" + encodeURIComponent(this.email.current.value) +
+      "&newpass=" + encodeURIComponent(this.password.current.value) +
+      "&rc=" + encodeURIComponent(this.rc.current.value) +
+      "&otp=" + encodeURIComponent(this.hotp.current.value);
     axios
       .post(qs)
       .then((res) => {
         if (res.data.valid) {
-          this.setState({ loading: false, success: true, data: res.data });
+          this.setState({ loading: false, success: true, data: res.data, target: res.data.target });
         } else {
           this.setState({ loading: false, success: false, data: res.data,
           error: 'One or more factors were incorrect.' });
@@ -48,22 +47,7 @@ class RecoverHOTP extends React.Component {
 
   render() {
     if (this.state.loading) return <Loading />;
-    if (this.state.success) return <>
-      <h2 className="text-center text-success">
-        <i className="fa-solid fa-envelope-circle-check"></i>
-        &nbsp;&thinsp;HOTP reset!
-      </h2>
-      <p className="mb-0 mt-3">
-        Please scan the following QR code with an app like Google Authenticator to set up your new HOTP device.
-      </p>
-      <QRCode
-        value={"otpauth://hotp/" + this.state.data.email + "?secret=" + base32.encode(Buffer.from(this.state.data.hotpSecret, 'hex')) + "&issuer=MFCHF%20Demo&algorithm=SHA1&digits=6&counter=1"}
-        className="qr mt-4 mb-4"
-        size={192}
-      />
-      <Link to="/" class="btn btn-primary w-100 mb-0 mt-3"><i class="fa-solid fa-right-from-bracket"></i>&nbsp; Done</Link>
-    </>
-    ;
+    if (this.state.success) return <Navigate to="/success" />;
 
     return (<>
       <form action="" onSubmit={this.submit}>
@@ -79,25 +63,36 @@ class RecoverHOTP extends React.Component {
           />
         </div>
         <div className="mt-3">
-          <label htmlFor="email" className="form-label">
-            Password
-          </label>
-          <input
-            ref={this.password}
-            type="password"
-            className="form-control"
-            placeholder="Enter your password"
-          />
-        </div>
-        <div className="mt-3">
-          <label htmlFor="email" className="form-label">
+          <label htmlFor="rc" className="form-label">
             Recovery code
           </label>
           <input
             ref={this.rc}
             type="text"
             className="form-control"
-            placeholder="Enter your recovery code code"
+            placeholder="Enter your recovery code"
+          />
+        </div>
+        <div className="mt-3">
+          <label htmlFor="email" className="form-label">
+            New password
+          </label>
+          <input
+            ref={this.password}
+            type="password"
+            className="form-control"
+            placeholder="Choose your new password"
+          />
+        </div>
+        <div className="mt-3">
+          <label htmlFor="email" className="form-label">
+            HOTP code
+          </label>
+          <input
+            ref={this.hotp}
+            type="number"
+            className="form-control"
+            placeholder="Enter your one-time code"
           />
         </div>
         <button
@@ -122,4 +117,4 @@ class RecoverHOTP extends React.Component {
   }
 }
 
-export default RecoverHOTP;
+export default RecoverPassword;

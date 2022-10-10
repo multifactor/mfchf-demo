@@ -16,6 +16,7 @@ import Register from "./Pages/Register";
 import Home from "./Pages/Home";
 import Remember from "./Pages/Remember";
 import RecoverHOTP from "./Pages/RecoverHOTP";
+import RecoverPassword from "./Pages/RecoverPassword";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -32,6 +33,7 @@ root.render(
               <Route path="/register" element={<Register />} />
               <Route path="/remember" element={<Remember />} />
               <Route path="/recoverhotp" element={<RecoverHOTP />} />
+              <Route path="/recoverpassword" element={<RecoverPassword />} />
               <Route path="/" element={<Home />} />
             </Routes>
           </Router>
