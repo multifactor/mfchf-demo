@@ -13,6 +13,7 @@ import icon from "./Images/icon-w.png";
 import Success from "./Pages/Success";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
+import Home from "./Pages/Home";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -27,6 +28,7 @@ root.render(
               <Route path="/success" element={<Success />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </Router>
         </div>

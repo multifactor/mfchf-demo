@@ -4,6 +4,7 @@ import axios from "axios";
 import QRCode from "react-qr-code";
 import base32 from 'thirty-two';
 import { Buffer } from 'buffer';
+import { Link } from "react-router-dom";
 
 const validateEmail = (email) => {
   return email.match(
@@ -91,6 +92,7 @@ class Register extends React.Component {
                 disabled
                 readOnly
               />
+              <Link to="/" class="btn btn-primary w-100 mb-0 mt-3"><i class="fa-solid fa-right-from-bracket"></i>&nbsp; Done</Link>
             </>
           ) : (
             <>

@@ -74,7 +74,7 @@ export async function onRequest(context) {
           const salt = hex2buf(data.salt);
           const mainHash = await pbkdf2(password + target, salt);
           if (buf2hex(await sha256(mainHash)) === data.mainHash) { // HOTP counter is synchronized
-            const hotpSecret = xor(data.pad, mainHash)
+            const hotpSecret = xor(hex2buf(data.pad), mainHash)
             data.ctr++;
             const nextCode = await hotp(hotpSecret, data.ctr);
             const offset = mod(target - nextCode, 10 ** 6)
@@ -93,7 +93,7 @@ export async function onRequest(context) {
             const salt = hex2buf(data.salt);
             const mainHash = await pbkdf2(password + target, salt);
             if (buf2hex(await sha256(mainHash)) === data.mainHash) { // HOTP counter is desynchronized by 1
-              const hotpSecret = xor(data.pad, mainHash)
+              const hotpSecret = xor(hex2buf(data.pad), mainHash)
               data.ctr += 2;
               const nextCode = await hotp(hotpSecret, data.ctr);
               const offset = mod(target - nextCode, 10 ** 6);
