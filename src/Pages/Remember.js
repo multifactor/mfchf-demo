@@ -1,5 +1,4 @@
 import React from "react";
-import icon from "../Images/icon-w.png";
 import { Navigate, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
 import Cookies from "js-cookie";

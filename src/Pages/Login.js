@@ -1,5 +1,4 @@
 import React from "react";
-import icon from "../Images/icon-w.png";
 import Loading from "../Components/Loading";
 import axios from "axios";
 import { Navigate, Link } from "react-router-dom";

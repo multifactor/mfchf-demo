@@ -1,9 +1,7 @@
 import React from "react";
-import icon from "../Images/icon-w.png";
 import Loading from "../Components/Loading";
 import axios from "axios";
-import { Navigate, Link } from "react-router-dom";
-import Cookies from "js-cookie";
+import { Link } from "react-router-dom";
 import QRCode from "react-qr-code";
 import base32 from 'thirty-two';
 
